@@ -4,50 +4,30 @@ name: onechunk-cross-build
 on: [push]
 
 jobs:
-  windows_x86:
-    name: x86_64/release/windows
-    runs-on: [windows-latest]
-    steps:
-    - uses: actions/checkout@v2
-    - uses: msys2/setup-msys2@v2
-    - name: build
-      run: |
-       g++ -O2 -m64 onechunk-boinc.cpp -o onechunk.exe ./cubiomes/finders.c ./cubiomes/util.c ./cubiomes/generator.c ./cubiomes/layers.c -I./include -l:libboinc_api.a -l:libboinc.a -L./include/boinc/lib/x86_64/win -lstdc++ -static -static-libstdc++ -D_WIN64 -DBOINC -DWIN64 -D_WIN32 -DWIN32 -lboinc_api -lboinc
-       dir
-    - uses: actions/upload-artifact@v2
-      with:
-       name: onechunk-x86_64-windows
-       path: ./onechunk.exe
-
-  linux_x86:
-    name: x86_64/release/linux
-    runs-on: [ubuntu-latest]
-    steps:
-    - uses: actions/checkout@v2
-    - name: build
-      run: |
-        g++ -O2 -m64 onechunk-boinc.cpp -o onechunk ./cubiomes/finders.c ./cubiomes/util.c ./cubiomes/generator.c ./cubiomes/layers.c -I./include -l:libboinc_api.a -l:libboinc.a -L./include/boinc/lib/x86_64/lin -lstdc++ -static -static-libstdc++ -DBOINC -lboinc_api -lboinc -pthread
-        ls -la
-    - uses: actions/upload-artifact@v2
-      with:
-       name: onechunk-x86_64-linux
-       path: ./onechunk
-
-  linux_aarch64:
-    name: aarch64/release/linux
-    runs-on: [ubuntu-latest]
-    steps:
-    - uses: actions/checkout@v2
-    - name: setup
-      run: |
-        sudo apt install g++-10-aarch64-linux-gnu
-        sudo apt install gcc-10-aarch64-linux-gnu
-    - name: build
-      run: |
-        aarch64-linux-gnu-g++-10 -O2 onechunk-boinc.cpp -o onechunk ./cubiomes/finders.c ./cubiomes/util.c ./cubiomes/generator.c ./cubiomes/layers.c -I./include -l:libboinc_api.a -l:libboinc.a -L./include/boinc/lib/aarch64/lin -lstdc++ -static -static-libstdc++ -DBOINC -lboinc_api -lboinc -pthread
-        ls -la
-    - uses: actions/upload-artifact@v2
-      with:
-       name: onechunk-aarch64-linux
-       path: ./onechunk
+    build :
+        name: Build library on ${{ matrix.os }} ${{ matrix.architecture }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os : [windows, ubuntu,  macOS]
+                architecture: [x86, x64, aarch64, armv7]
+                exclude:
+                    - os: macOS-latest
+                      architecture: x86
+                    - os: macOS-latest
+                      architecture: armv7
+        runs-on: ${{ matrix.os }}-latest
+        steps:
+            - uses: actions/checkout@v2
+            - if: startsWith(matrix.os,windows)==true
+                name: Setup MSYS
+                uses: msys2/setup-msys2@v2
+            - name : Build for ${{matrix.architecture}}
+              run: |
+                g++ -O2 -m64 onechunk-boinc.cpp -o onechunk.exe ./cubiomes/finders.c ./cubiomes/util.c ./cubiomes/generator.c ./cubiomes/layers.c -I./include -l:libboinc_api.a -l:libboinc.a -L./include/boinc/lib/x86_64/win -lstdc++ -static -static-libstdc++ -D_WIN64 -DBOINC -DWIN64 -D_WIN32 -DWIN32 -lboinc_api -lboinc
+                dir
+            - uses: actions/upload-artifact@v2
+              with:
+                name: onechunk-{{matrix.architecture}}-{{matrix.os}}
+                path: ./onechunk.exe     
   
