@@ -12,10 +12,12 @@ jobs:
                 os : [windows, ubuntu,  macOS]
                 architecture: [x86, x64, aarch64, armv7]
                 exclude:
-                    - os: macOS-latest
+                    - os: macOS
                       architecture: x86
-                    - os: macOS-latest
+                    - os: macOS
                       architecture: armv7
+                    - os: macOS
+                      architecture: aarch64
         runs-on: ${{ matrix.os }}-latest
         steps:
             - uses: actions/checkout@v2
