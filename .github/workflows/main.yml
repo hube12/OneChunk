@@ -19,9 +19,9 @@ jobs:
         runs-on: ${{ matrix.os }}-latest
         steps:
             - uses: actions/checkout@v2
-            - if: startsWith(matrix.os,'windows')
-                name: Setup MSYS
-                uses: msys2/setup-msys2@v2
+            - name: Setup MSYS
+              if: startsWith(matrix.os,'windows')
+              uses: msys2/setup-msys2@v2
             - name : Build for ${{matrix.architecture}}
               run: |
                 g++ -O2 -m64 onechunk-boinc.cpp -o onechunk.exe ./cubiomes/finders.c ./cubiomes/util.c ./cubiomes/generator.c ./cubiomes/layers.c -I./include -l:libboinc_api.a -l:libboinc.a -L./include/boinc/lib/x86_64/win -lstdc++ -static -static-libstdc++ -D_WIN64 -DBOINC -DWIN64 -D_WIN32 -DWIN32 -lboinc_api -lboinc
